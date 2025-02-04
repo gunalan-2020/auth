@@ -41,7 +41,7 @@ export class AuthService {
     return {
       message: 'Login successful',
       jwt: token,
-      rememberMe: expiresIn,
+      rememberMe,
       isEmailVeryfied: user.isEmailVerified,
     };
   }

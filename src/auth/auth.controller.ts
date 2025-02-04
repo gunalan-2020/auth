@@ -16,7 +16,7 @@ export class AuthController {
     @Res() res: Response,
     @Body() body: { email: string; password: string; rememberMe: boolean },
   ) {
-    const { jwt, ...response } = await this.authService.login(
+    const response = await this.authService.login(
       body.email,
       body.password,
       body.rememberMe,
@@ -25,12 +25,6 @@ export class AuthController {
     if (!response.isEmailVeryfied) {
       return res.status(202).json('pleas verify your email');
     }
-    res.cookie('jwt', jwt, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: response.rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
-    });
 
     return res.status(200).json(response);
   }
