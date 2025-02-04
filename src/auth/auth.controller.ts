@@ -30,7 +30,7 @@ export class AuthController {
       path: '/',
       httpOnly: false,
       secure: false,
-      sameSite: 'none',
+      sameSite: 'lax',
       maxAge: response.rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
     });
 
