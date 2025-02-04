@@ -26,6 +26,14 @@ export class AuthController {
       return res.status(202).json('pleas verify your email');
     }
 
+    res.cookie('jwt', response.jwt, {
+      path: '/',
+      httpOnly: false,
+      secure: false,
+      sameSite: 'none',
+      maxAge: response.rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
+    });
+
     return res.status(200).json(response);
   }
 
