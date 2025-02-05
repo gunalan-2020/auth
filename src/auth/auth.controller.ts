@@ -16,25 +16,29 @@ export class AuthController {
     @Res() res: Response,
     @Body() body: { email: string; password: string; rememberMe: boolean },
   ) {
-    const response = await this.authService.login(
-      body.email,
-      body.password,
-      body.rememberMe,
-    );
+    try {
+      const response = await this.authService.login(
+        body.email,
+        body.password,
+        body.rememberMe,
+      );
 
-    if (!response.isEmailVeryfied) {
-      return res.status(202).json('pleas verify your email');
+      if (!response.isEmailVeryfied) {
+        throw new Error('pleas verify your email');
+      }
+
+      res.cookie('jwt', response.jwt, {
+        path: '/',
+        httpOnly: false,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: response.rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
+      });
+
+      return res.status(200).json(response);
+    } catch (e) {
+      res.status(400).json({ error: { message: e?.message } });
     }
-
-    res.cookie('jwt', response.jwt, {
-      path: '/',
-      httpOnly: false,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: response.rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
-    });
-
-    return res.status(200).json(response);
   }
 
   @Post('logout')
@@ -44,13 +48,14 @@ export class AuthController {
   }
 
   @Get('verify-email')
-  async verifyEmail(@Query('token') token: string) {
+  async verifyEmail(@Query('token') token: string, @Res() res: Response) {
     try {
       const user = await this.authService.verifyEmailToken(token);
 
       return { message: 'Email successfully verified', user };
     } catch (error) {
       console.log('error', error);
+      res.status(400).json({ error: { message: error?.message } });
     }
   }
 
@@ -60,10 +65,17 @@ export class AuthController {
   }
 
   @Post('reset-password')
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.authService.resetPassword(
-      resetPasswordDto.token,
-      resetPasswordDto.newPassword,
-    );
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+    @Res() res: Response,
+  ) {
+    try {
+      return this.authService.resetPassword(
+        resetPasswordDto.token,
+        resetPasswordDto.newPassword,
+      );
+    } catch (error) {
+      res.status(400).json({ error: { message: error?.message } });
+    }
   }
 }

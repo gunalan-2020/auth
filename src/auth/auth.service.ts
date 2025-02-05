@@ -34,6 +34,10 @@ export class AuthService {
       throw new Error('Invalid email or password');
     }
 
+    if (!user.isEmailVerified) {
+      throw new Error('pleas verify your email');
+    }
+
     const payload = { email: user.email, sub: user.id };
     const expiresIn = rememberMe ? '7d' : '1h';
     const token = this.jwtService.sign(payload, { expiresIn });
